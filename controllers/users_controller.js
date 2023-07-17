@@ -122,7 +122,7 @@ exports.userLogin = (req, res) => {
 
                 if (result) {
                     const payload = {
-                        email: value.email
+                        username: value.username
                     };
 
                     const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: '1d' });
