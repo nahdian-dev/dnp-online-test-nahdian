@@ -1,4 +1,4 @@
-const statusCodeConstant = require('/constants/error_statuscode_constant');
+const statusCodeConstant = require('./constants/error_statuscode_constant');
 
 exports.errorHandling = function (err, req, res, next) {
     const statusCode = statusCodeConstant.errorStatuscodeConstant || 400;
