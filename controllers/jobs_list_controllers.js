@@ -10,6 +10,7 @@ exports.jobList = (req, res) => {
     async function getData(descParam = 'Empty', locationParam = 'Empty', ftParam = 'Empty') {
         let descValue = [];
         let locationValue = [];
+        let ftValue = [];
 
         try {
             const response = await axios.get('http://dev3.dansmultipro.co.id/api/recruitment/positions.json');
@@ -29,8 +30,15 @@ exports.jobList = (req, res) => {
                 }
             }
 
-            console.log(descValue);
-            console.log(locationValue);
+            // SEARCH FULLTIME 
+            for (let i = 0; i < keys.length; i++) {
+                if (ftParam.includes('true')) {
+                    ftValue.push(i);
+                }
+            }
+
+
+
         } catch (err) {
             res.status(400).json({
                 status: 'error',
@@ -53,5 +61,38 @@ exports.jobList = (req, res) => {
         const full_time = req.query.full_time;
 
         getData(description, location, full_time);
+    });
+};
+
+// @desc Get job detail
+// @route GET - /api/job-list/job-detail/:id
+// @access private
+exports.jobDetail = (req, res) => {
+    async function getJobDetail(paramID) {
+        const response = await axios.get('http://dev3.dansmultipro.co.id/api/recruitment/positions.json');
+        const keys = response.data;
+
+        // SEACRH ID
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i].id.includes(paramID)) {
+                res.status(200).json({
+                    status: 'success',
+                    code: 200,
+                    data: keys[i]
+                });
+            }
+        }
+    }
+
+    // VALIDATE TOKEN
+    const tokenHeader = req.headers.authorization;
+    const token = tokenHeader.replace('Bearer ', '');
+    jwt.verify(token, process.env.JWT_SECRET_KEY, async (error, payload) => {
+        if (error) {
+            res.status(400);
+            throw new Error(`Error validate token: ${error}`);
+        }
+
+        getJobDetail(req.params.id);
     });
 };
