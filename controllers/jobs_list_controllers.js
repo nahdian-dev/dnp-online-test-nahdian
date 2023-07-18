@@ -83,13 +83,31 @@ exports.jobList = (req, res) => {
 
             result.forEach(value => {
                 message.push(keys[value]);
-            });
 
-            res.status(200).json({
-                status: 'success',
-                code: 200,
-                message: message
+                console.log(value);
             });
+            console.log(descValue);
+            console.log(locationValue);
+            console.log(ftValue);
+
+            console.log(result);
+
+            if (message.length === 0) {
+                res.status(200).json({
+                    status: 'error',
+                    code: 400,
+                    message: 'Data not found!'
+                });
+                res.end();
+            }
+
+            if (message.length > 0) {
+                res.status(200).json({
+                    status: 'success',
+                    code: 200,
+                    message: message
+                });
+            }
 
         } catch (err) {
             res.status(400).json({
