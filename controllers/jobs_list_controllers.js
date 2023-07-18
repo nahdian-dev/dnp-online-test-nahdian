@@ -72,6 +72,8 @@ exports.jobDetail = (req, res) => {
         const response = await axios.get('http://dev3.dansmultipro.co.id/api/recruitment/positions.json');
         const keys = response.data;
 
+        let found = false;
+
         // SEACRH ID
         for (let i = 0; i < keys.length; i++) {
             if (keys[i].id.includes(paramID)) {
@@ -80,17 +82,30 @@ exports.jobDetail = (req, res) => {
                     code: 200,
                     data: keys[i]
                 });
+                found = true;
+                break;
             }
+        }
+
+        if (!found) {
+            res.status(404).json({
+                status: 'ID not found!',
+                code: 404
+            });
         }
     }
 
     // VALIDATE TOKEN
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader.replace('Bearer ', '');
-    jwt.verify(token, process.env.JWT_SECRET_KEY, async (error, payload) => {
+
+    jwt.verify(token, process.env.JWT_SECRET_KEY, (error, payload) => {
         if (error) {
-            res.status(400);
-            throw new Error(`Error validate token: ${error}`);
+            res.json({
+                status: 'error',
+                code: 404,
+                message: error
+            });
         }
 
         getJobDetail(req.params.id);
