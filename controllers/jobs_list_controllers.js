@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const _ = require('lodash');
 const jsonStringifySafe = require('json-stringify-safe');
 require('dotenv').config();
 
@@ -16,28 +17,77 @@ exports.jobList = (req, res) => {
             const response = await axios.get('http://dev3.dansmultipro.co.id/api/recruitment/positions.json');
             const keys = response.data;
 
-            // SEARCH DESC
+            // SEARCH value
             for (let i = 0; i < keys.length; i++) {
                 if (keys[i].description.toLowerCase().includes(descParam.toLowerCase())) {
                     descValue.push(i);
                 }
-            }
-
-            // SEACRH LOCATION
-            for (let i = 0; i < keys.length; i++) {
                 if (keys[i].location.toLowerCase().includes(locationParam.toLowerCase())) {
                     locationValue.push(i);
                 }
-            }
-
-            // SEARCH FULLTIME 
-            for (let i = 0; i < keys.length; i++) {
                 if (ftParam.includes('true')) {
                     ftValue.push(i);
                 }
             }
 
+            let result;
+            let numArray = 0;
+            const merge = _.concat(descValue, locationValue, ftValue);
 
+            if (descValue.length > 1) {
+                numArray += 1;
+            }
+            if (locationValue.length > 1) {
+                numArray += 1;
+            }
+            if (ftValue.length > 1) {
+                numArray += 1;
+            }
+
+            if (numArray === 3) {
+                result = _(merge)
+                    .groupBy()
+                    .pickBy(values => values.length === 3)
+                    .keys()
+                    .map(Number)
+                    .value();
+            }
+
+            if (numArray === 2) {
+                result = _(merge)
+                    .groupBy()
+                    .pickBy(values => values.length === 2)
+                    .keys()
+                    .map(Number)
+                    .value();
+            }
+
+            if (numArray === 1) {
+                result = _(merge)
+                    .groupBy()
+                    .pickBy(values => values.length === 1)
+                    .keys()
+                    .map(Number)
+                    .value();
+            }
+
+            if (numArray === 0) {
+                res.status(200).json({
+                    status: 'success',
+                    code: 200,
+                    data: keys
+                });
+            }
+
+            let message = [];
+
+            for (let i = 0; i < result.length; i++) {
+                message.push(keys[i])
+            }
+
+            res.status(200).json({
+                message: message
+            })
 
         } catch (err) {
             res.status(400).json({
@@ -51,11 +101,16 @@ exports.jobList = (req, res) => {
     // VALIDATE TOKEN
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader.replace('Bearer ', '');
+
     jwt.verify(token, process.env.JWT_SECRET_KEY, async (error, payload) => {
         if (error) {
-            res.status(400);
-            throw new Error(`Error validate token: ${error}`);
+            res.json({
+                status: 'error',
+                code: 404,
+                message: error
+            });
         }
+
         const description = req.query.description;
         const location = req.query.location;
         const full_time = req.query.full_time;
