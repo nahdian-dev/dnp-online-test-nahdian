@@ -81,13 +81,15 @@ exports.jobList = (req, res) => {
 
             let message = [];
 
-            for (let i = 0; i < result.length; i++) {
-                message.push(keys[i])
-            }
+            result.forEach(value => {
+                message.push(keys[value]);
+            });
 
             res.status(200).json({
+                status: 'success',
+                code: 200,
                 message: message
-            })
+            });
 
         } catch (err) {
             res.status(400).json({
